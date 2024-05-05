@@ -17,14 +17,20 @@ allow_http = ec2.SecurityGroupRule("AllowHTTP", type="ingress", from_port=80, to
 
 allow_all = ec2.SecurityGroupRule("AllowAll", type="egress", from_port=0, to_port=0, protocol="-1", cidr_blocks=["0.0.0.0/0"], security_group_id=sg.id)
 
-ec2_instance = ec2.Instance('web-server',
-                            ami="ami-0cf2b4e024cdb6960",
-                            instance_type="t2.micro",
-                            key_name="ec2privatekey",
-                            vpc_security_group_ids=[sg.id],
-                            tags={
-                                "Name": "web"
-                            })
+instance_names = ["web1", "web2", "web3"]
+output_public_ip = []
 
-pulumi.export('public_ip', ec2_instance.public_ip)
-pulumi.export('instance_url', pulumi.Output.concat("http://", ec2_instance.public_dns))
+for instance in instance_names:
+    ec2_instance = ec2.Instance(instance,
+                                ami="ami-0cf2b4e024cdb6960",
+                                instance_type="t2.micro",
+                                key_name="ec2privatekey",
+                                vpc_security_group_ids=[sg.id],
+                                tags={
+                                    "Name": instance
+                                })
+    output_public_ip.append(ec2_instance.public_ip)
+
+# pulumi.export('public_ip', ec2_instance.public_ip)
+pulumi.export('public_ip', output_public_ip)
+# pulumi.export('instance_url', pulumi.Output.concat("http://", ec2_instance.public_dns))
